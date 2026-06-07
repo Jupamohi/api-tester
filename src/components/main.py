@@ -1,3 +1,5 @@
+import csv
+
 import requests
 import sqlite3
 
@@ -12,8 +14,19 @@ def fetch(url):
     try: # pedimos los datos a la url
         respuesta = requests.get(url)
         datos = respuesta.json()
-        sql.execute("CREATE TABLE IF NOT EXISTS datos (userId INTEGER PRIMARY KEY, id INTEGER, title TEXT, body TEXT)") # creamos la tabla "datos" si no existe
-        sql.execute("INSERT INTO datos (userId, id, title, body) VALUES (?, ?, ?, ?)", (datos['userId'], datos['id'], datos['title'], datos['body'])) # insertamos los datos en la tabla
+        sql.execute("""
+    CREATE TABLE IF NOT EXISTS datos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER, 
+        post_id INTEGER,
+        title TEXT, 
+        body TEXT
+    )
+                    """) # creamos la tabla "datos" si no existe
+        sql.execute(
+    "INSERT OR IGNORE INTO datos (userId, post_id, title, body) VALUES (?, ?, ?, ?)", 
+    (datos['userId'], datos['id'], datos['title'], datos['body'])
+                    ) # insertamos los datos en la tabla
         conn.commit() # guardamos los cambios en la base de datos
     except(requests.exceptions.RequestException) as e:
         print("Url no disponible")
@@ -35,10 +48,22 @@ def stats():
 
 
 def export():
-    global datos
-    with open("datos.txt", "w") as f: # exportamos los datos a un archivo de texto
-        f.write(str(datos))
-
+    try:
+        cursor = conn.execute("SELECT * FROM datos")
+        rows = cursor.fetchall()
+        
+        if not rows:
+            print("No hay datos para exportar.")
+            return
+        
+        with open("datos.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["id", "userId", "post_id", "title", "body"])  # headers
+            writer.writerows(rows)
+        
+        print(f"✓ {len(rows)} registros exportados a datos.csv")
+    except Exception as e:
+        print(f"Error al exportar: {e}")
 def eliminar():
     global datos
     sql.execute("DELETE FROM datos") # eliminamos los datos de la base de datos
