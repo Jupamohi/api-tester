@@ -1,9 +1,23 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
 
 # Local data
 src/database/database.db
 exports/
+datos.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
