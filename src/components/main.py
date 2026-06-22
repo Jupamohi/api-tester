@@ -35,15 +35,26 @@ def fetch(url):
 
 # función para mostrar los datos obtenidos
 def stats():
-    # Obtenemos los datos y usamos fetchall() para ver las filas
     cursor = conn.execute("SELECT * FROM datos")
     rows = cursor.fetchall()
-    if rows:
-        print("Datos obtenidos:")
-        for row in rows:
-            print("\n",row)
-    else:
-        print("No se han obtenido datos aún.")
+    
+    if not rows:
+        print("No hay datos aún.")
+        return
+    
+    # Total de posts
+    print(f"\n📊 Total de posts: {len(rows)}")
+    
+    # Posts por usuario
+    cursor = conn.execute("SELECT userId, COUNT(*) as count FROM datos GROUP BY userId ORDER BY count DESC")
+    print("\nPosts por usuario:")
+    for userId, count in cursor.fetchall():
+        print(f"  - Usuario {userId}: {count} posts")
+    
+    # Listar títulos
+    # print("\nTítulos:")
+    # for row in rows[:5]:  # primeros 5
+    #     print(f"  - {row[3]}")  # row[3] es title
 
 
 def export():
